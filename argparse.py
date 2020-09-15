@@ -105,31 +105,49 @@ _UNRECOGNIZED_ARGS_ATTR = '_unrecognized_args'
 # =============================
 
 class _AttributeHolder(object):
-    """Abstract base class that provides __repr__.
+    """
+    Abstract base class that provides __repr__.
 
     The __repr__ method returns a string in the format::
-        ClassName(attr=name, attr=name, ...)
-    The attributes are determined either by a class-level attribute,
-    '_kwarg_names', or by inspecting the instance __dict__.
+    ```
+    ClassName(
+            pos1, pos2, ...,
+            key1=value1, key2=value2, ...,
+            **{'weird key 3': value3, 'weird key 4': value4}
+        )
+    ```
+    (The spacing is just for illustration)
+
+    The attributes are determined by the methods `_get_args` and ´_get_kwargs`.
+    Their default implementations uses __slots__ or __dict__
     """
 
     def __repr__(self):
-        type_name = type(self).__name__
-        arg_strings = []
-        star_args = {}
-        for arg in self._get_args():
-            arg_strings.append(repr(arg))
+        # Sort the keyword arguments by whether their name is an identifier or not
+        id_args = {}
+        non_id_args = {}
         for name, value in self._get_kwargs():
             if name.isidentifier():
-                arg_strings.append('%s=%r' % (name, value))
+                id_args[name] = value
             else:
-                star_args[name] = value
-        if star_args:
-            arg_strings.append('**%s' % repr(star_args))
-        return '%s(%s)' % (type_name, ', '.join(arg_strings))
+                non_id_args[name] = value
+
+        arg_strings = []
+        # Add the positional arguments
+        arg_strings.extend(map(repr, self._get_args()))
+        # Add the identifier arguments
+        arg_strings.extend(map(lambda k, v: f"{k}={repr(v)}", id_args))
+        # If any present, add non identifier arguments
+        if non_id_args:
+            arg_strings.append(f"**{repr(non_id_args)}")
+
+        return f"{type(self).__name__}({', '.join(arg_strings)})"
 
     def _get_kwargs(self):
-        return sorted(self.__dict__.items())
+        if hasattr(self.__class__, "__slots__"):
+            return sorted(((key, getattr(self, key)) for key in self.__slots__))
+        else:
+            return sorted(self.__dict__.items())
 
     def _get_args(self):
         return []

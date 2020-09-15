@@ -1,6 +1,5 @@
 import shutil as _shutil
 import re as _re
-import sys as _sys
 from gettext import gettext as _
 
 from .const import (
@@ -11,7 +10,6 @@ from .const import (
     REMAINDER,
     PARSER,
 )
-from .errors import ArgumentTypeError
 
 
 class HelpFormatter(object):
@@ -84,7 +82,7 @@ class HelpFormatter(object):
             # add the heading if the section was non-empty
             if self.heading is not SUPPRESS and self.heading is not None:
                 current_indent = self.formatter._current_indent
-                heading = '%*s%s:\n' % (current_indent, '', self.heading)
+                heading = f'{" " * current_indent}{self.heading}:\n'
             else:
                 heading = ''
 
@@ -163,11 +161,11 @@ class HelpFormatter(object):
 
         # if no optionals or positionals are available, usage is just prog
         elif usage is None and not actions:
-            usage = '%(prog)s' % dict(prog=self._prog)
+            usage = str(self._prog)
 
         # if optionals and positionals are available, calculate usage
         elif usage is None:
-            prog = '%(prog)s' % dict(prog=self._prog)
+            prog = str(self._prog)
 
             # split optionals from positionals
             optionals = []
@@ -247,7 +245,7 @@ class HelpFormatter(object):
                 usage = '\n'.join(lines)
 
         # prefix with 'usage:'
-        return '%s%s\n\n' % (prefix, usage)
+        return f'{prefix}{usage}\n\n'
 
     def _format_actions_usage(self, actions, groups):
         # find group indices and identify actions in groups
@@ -317,18 +315,18 @@ class HelpFormatter(object):
                 # if the Optional doesn't take a value, format is:
                 #    -s or --long
                 if action.nargs == 0:
-                    part = '%s' % option_string
+                    part = str(option_string)
 
                 # if the Optional takes a value, format is:
                 #    -s ARGS or --long ARGS
                 else:
                     default = self._get_default_metavar_for_optional(action)
                     args_string = self._format_args(action, default)
-                    part = '%s %s' % (option_string, args_string)
+                    part = f'{option_string} {args_string}'
 
                 # make it look optional if it's not required or in a group
                 if not action.required and action not in group_actions:
-                    part = '[%s]' % part
+                    part = f'[{part}]'
 
                 # add the action string to the list
                 parts.append(part)
@@ -341,11 +339,11 @@ class HelpFormatter(object):
         text = ' '.join([item for item in parts if item is not None])
 
         # clean up separators for mutually exclusive groups
-        open = r'[\[(]'
-        close = r'[\])]'
-        text = _re.sub(r'(%s) ' % open, r'\1', text)
-        text = _re.sub(r' (%s)' % close, r'\1', text)
-        text = _re.sub(r'%s *%s' % (open, close), r'', text)
+        open_pattern = r'[\[(]'
+        close_pattern = r'[\])]'
+        text = _re.sub(rf'({open_pattern}) ', r'\1', text)
+        text = _re.sub(rf' ({close_pattern})', r'\1', text)
+        text = _re.sub(rf'{open_pattern} *{close_pattern}', r'', text)
         text = _re.sub(r'\(([^|]*)\)', r'\1', text)
         text = text.strip()
 
@@ -369,19 +367,17 @@ class HelpFormatter(object):
 
         # no help; start on same line and add a final newline
         if not action.help:
-            tup = self._current_indent, '', action_header
-            action_header = '%*s%s\n' % tup
+            action_header = f'{" " * self._current_indent}{action_header}\n'
 
         # short action name; start on the same line and pad two spaces
         elif len(action_header) <= action_width:
-            tup = self._current_indent, '', action_width, action_header
-            action_header = '%*s%-*s  ' % tup
+            tup = action_width, action_header
+            action_header = f'{" " * self._current_indent}{action_header:{action_width}}  '
             indent_first = 0
 
         # long action name; start on the next line
         else:
-            tup = self._current_indent, '', action_header
-            action_header = '%*s%s\n' % tup
+            action_header = f'{" " * self._current_indent}{action_header}\n'
             indent_first = help_position
 
         # collect the pieces of the action help
@@ -391,9 +387,9 @@ class HelpFormatter(object):
         if action.help:
             help_text = self._expand_help(action)
             help_lines = self._split_lines(help_text, help_width)
-            parts.append('%*s%s\n' % (indent_first, '', help_lines[0]))
+            parts.append(f'{" " * indent_first}{help_lines[0]}\n')
             for line in help_lines[1:]:
-                parts.append('%*s%s\n' % (help_position, '', line))
+                parts.append(f'{" " * help_position}{line}\n')
 
         # or add a newline if the description doesn't end with one
         elif not action_header.endswith('\n'):
@@ -426,7 +422,7 @@ class HelpFormatter(object):
                 default = self._get_default_metavar_for_optional(action)
                 args_string = self._format_args(action, default)
                 for option_string in action.option_strings:
-                    parts.append('%s %s' % (option_string, args_string))
+                    parts.append(f'{option_string} {args_string}')
 
             return ', '.join(parts)
 
@@ -435,7 +431,7 @@ class HelpFormatter(object):
             result = action.metavar
         elif action.choices is not None:
             choice_strs = [str(choice) for choice in action.choices]
-            result = '{%s}' % ','.join(choice_strs)
+            result = f'{{{",".join(choice_strs)}}}'
         else:
             result = default_metavar
 
@@ -449,26 +445,24 @@ class HelpFormatter(object):
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
         if action.nargs is None:
-            result = '%s' % get_metavar(1)
+            return f'{get_metavar(1)}'
         elif action.nargs == OPTIONAL:
-            result = '[%s]' % get_metavar(1)
+            return f'[{get_metavar(1)}]'
         elif action.nargs == ZERO_OR_MORE:
-            result = '[%s [%s ...]]' % get_metavar(2)
+            return f'[{get_metavar(1)} [{get_metavar(1)} ...]]'
         elif action.nargs == ONE_OR_MORE:
-            result = '%s [%s ...]' % get_metavar(2)
+            return f'{get_metavar(1)} [{get_metavar(1)} ...]'
         elif action.nargs == REMAINDER:
-            result = '...'
+            return '...'
         elif action.nargs == PARSER:
-            result = '%s ...' % get_metavar(1)
+            return f'{get_metavar(1)} ...'
         elif action.nargs == SUPPRESS:
-            result = ''
+            return ''
         else:
             try:
-                formats = ['%s' for _ in range(action.nargs)]
+                return ' '.join(f'{get_metavar(1)}' for _ in range(action.nargs))
             except TypeError:
                 raise ValueError("invalid nargs value") from None
-            result = ' '.join(formats) % get_metavar(action.nargs)
-        return result
 
     def _expand_help(self, action):
         params = dict(vars(action), prog=self._prog)

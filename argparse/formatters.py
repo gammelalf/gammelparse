@@ -49,11 +49,11 @@ class HelpFormatter(object):
     # ===============================
     # Section and indentation methods
     # ===============================
-    def _indent(self):
+    def _increase_indent(self):
         self._current_indent += self._indent_increment
         self._level += 1
 
-    def _dedent(self):
+    def _decrease_indent(self):
         self._current_indent -= self._indent_increment
         assert self._current_indent >= 0, 'Indent decreased below 0.'
         self._level -= 1
@@ -69,11 +69,11 @@ class HelpFormatter(object):
         def format_help(self):
             # format the indented section
             if self.parent is not None:
-                self.formatter._indent()
+                self.formatter._increase_indent()
             join = self.formatter._join_parts
             item_help = join([func(*args) for func, args in self.items])
             if self.parent is not None:
-                self.formatter._dedent()
+                self.formatter._decrease_indent()
 
             # return nothing if the section was empty
             if not item_help:
@@ -96,14 +96,14 @@ class HelpFormatter(object):
     # Message building methods
     # ========================
     def start_section(self, heading):
-        self._indent()
+        self._increase_indent()
         section = self._Section(self, self._current_section, heading)
         self._add_item(section.format_help, [])
         self._current_section = section
 
     def end_section(self):
         self._current_section = self._current_section.parent
-        self._dedent()
+        self._decrease_indent()
 
     def add_text(self, text):
         if text is not SUPPRESS and text is not None:
@@ -146,10 +146,10 @@ class HelpFormatter(object):
             help = help.strip('\n') + '\n'
         return help
 
-    def _join_parts(self, part_strings):
-        return ''.join([part
-                        for part in part_strings
-                        if part and part is not SUPPRESS])
+    @staticmethod
+    def _join_parts(part_strings):
+        return ''.join(filter(lambda part: part and part is not SUPPRESS,
+                              part_strings))
 
     def _format_usage(self, usage, actions, groups, prefix):
         if prefix is None:
@@ -177,8 +177,7 @@ class HelpFormatter(object):
                     positionals.append(action)
 
             # build full usage string
-            format = self._format_actions_usage
-            action_usage = format(optionals + positionals, groups)
+            action_usage = self._format_actions_usage(optionals + positionals, groups)
             usage = ' '.join([s for s in [prog, action_usage] if s])
 
             # wrap the usage parts if it's too long
@@ -364,6 +363,7 @@ class HelpFormatter(object):
         help_width = max(self._width - help_position, 11)
         action_width = help_position - self._current_indent - 2
         action_header = self._format_action_invocation(action)
+        indent_first = 0
 
         # no help; start on same line and add a final newline
         if not action.help:
@@ -371,9 +371,7 @@ class HelpFormatter(object):
 
         # short action name; start on the same line and pad two spaces
         elif len(action_header) <= action_width:
-            tup = action_width, action_header
             action_header = f'{" " * self._current_indent}{action_header:{action_width}}  '
-            indent_first = 0
 
         # long action name; start on the next line
         else:
@@ -426,21 +424,21 @@ class HelpFormatter(object):
 
             return ', '.join(parts)
 
-    def _metavar_formatter(self, action, default_metavar):
+    @staticmethod
+    def _metavar_formatter(action, default_metavar):
         if action.metavar is not None:
             result = action.metavar
         elif action.choices is not None:
-            choice_strs = [str(choice) for choice in action.choices]
-            result = f'{{{",".join(choice_strs)}}}'
+            result = f'{{{",".join(map(str, action.choices))}}}'
         else:
             result = default_metavar
 
-        def format(tuple_size):
+        def formatter(tuple_size):
             if isinstance(result, tuple):
                 return result
             else:
                 return (result, ) * tuple_size
-        return format
+        return formatter
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
@@ -483,9 +481,9 @@ class HelpFormatter(object):
         except AttributeError:
             pass
         else:
-            self._indent()
+            self._increase_indent()
             yield from get_subactions()
-            self._dedent()
+            self._decrease_indent()
 
     def _split_lines(self, text, width):
         text = self._whitespace_matcher.sub(' ', text).strip()
@@ -563,4 +561,3 @@ class MetavarTypeHelpFormatter(HelpFormatter):
 
     def _get_default_metavar_for_positional(self, action):
         return action.type.__name__
-

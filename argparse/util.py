@@ -1,3 +1,5 @@
+from .const import SUPPRESS
+
 
 class _AttributeHolder(object):
     """
@@ -48,6 +50,27 @@ class _AttributeHolder(object):
         return []
 
 
+class Namespace(_AttributeHolder):
+    """Simple object for storing attributes.
+
+    Implements equality by attribute names and values, and provides a simple
+    string representation.
+    """
+
+    def __init__(self, **kwargs):
+        for name in kwargs:
+            setattr(self, name, kwargs[name])
+
+    def __eq__(self, other):
+        if not isinstance(other, Namespace):
+            return NotImplemented
+        return vars(self) == vars(other)
+
+    def __contains__(self, key):
+        return key in self.__dict__
+
+
+
 def _copy_items(items):
     """
     Copy a container in _AppendAction, _AppendConstAction or _ExtendAction
@@ -68,3 +91,16 @@ def _copy_items(items):
     else:
         import copy
         return copy.copy(items)
+
+
+def _get_action_name(argument):
+    if argument is None:
+        return None
+    elif argument.option_strings:
+        return  '/'.join(argument.option_strings)
+    elif argument.metavar not in (None, SUPPRESS):
+        return argument.metavar
+    elif argument.dest not in (None, SUPPRESS):
+        return argument.dest
+    else:
+        return None

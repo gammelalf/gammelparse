@@ -2,7 +2,8 @@ from .util import _get_action_name
 
 
 class ArgumentError(Exception):
-    """An error from creating or using an argument (optional or positional).
+    """
+    An error from creating or using an argument (optional or positional).
 
     The string value of this exception is the message, augmented with
     information about the argument that caused it.
@@ -14,11 +15,9 @@ class ArgumentError(Exception):
 
     def __str__(self):
         if self.argument_name is None:
-            format = '%(message)s'
+            return f"{self.message}"
         else:
-            format = 'argument %(argument_name)s: %(message)s'
-        return format % dict(message=self.message,
-                             argument_name=self.argument_name)
+            return f"argument {self.argument_name}: {self.message}"
 
 
 class ArgumentTypeError(Exception):

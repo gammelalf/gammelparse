@@ -190,8 +190,8 @@ class HelpFormatter(object):
                     r'\[.*?\]+(?=\s|$)|'
                     r'\S+'
                 )
-                opt_usage = format(optionals, groups)
-                pos_usage = format(positionals, groups)
+                opt_usage = self._format_actions_usage(optionals, groups)
+                pos_usage = self._format_actions_usage(positionals, groups)
                 opt_parts = _re.findall(part_regexp, opt_usage)
                 pos_parts = _re.findall(part_regexp, pos_usage)
                 assert ' '.join(opt_parts) == opt_usage

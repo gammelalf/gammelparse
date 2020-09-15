@@ -33,7 +33,7 @@ class _AttributeHolder(object):
         # Add the positional arguments
         arg_strings.extend(map(repr, self._get_args()))
         # Add the identifier arguments
-        arg_strings.extend(map(lambda k, v: f"{k}={repr(v)}", id_args))
+        arg_strings.extend(map(lambda pair: f"{pair[0]}={repr(pair[1])}", id_args))
         # If any present, add non identifier arguments
         if non_id_args:
             arg_strings.append(f"**{repr(non_id_args)}")

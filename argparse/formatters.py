@@ -403,7 +403,7 @@ class HelpFormatter(object):
     def _format_action_invocation(self, action):
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
-            metavar, = self._metavar_formatter(action, default)(1)
+            metavar = self._get_metavar(action, default)
             return metavar
 
         else:
@@ -425,40 +425,36 @@ class HelpFormatter(object):
             return ', '.join(parts)
 
     @staticmethod
-    def _metavar_formatter(action, default_metavar):
+    def _get_metavar(action, default_metavar):
         if action.metavar is not None:
-            result = action.metavar
+            return action.metavar
         elif action.choices is not None:
-            result = f'{{{",".join(map(str, action.choices))}}}'
+            return f'{{{",".join(map(str, action.choices))}}}'
         else:
-            result = default_metavar
-
-        def formatter(tuple_size):
-            if isinstance(result, tuple):
-                return result
-            else:
-                return (result, ) * tuple_size
-        return formatter
+            return default_metavar
 
     def _format_args(self, action, default_metavar):
-        get_metavar = self._metavar_formatter(action, default_metavar)
+        metavar = self._get_metavar(action, default_metavar)
         if action.nargs is None:
-            return f'{get_metavar(1)}'
+            return f'{metavar}'
         elif action.nargs == OPTIONAL:
-            return f'[{get_metavar(1)}]'
+            return f'[{metavar}]'
         elif action.nargs == ZERO_OR_MORE:
-            return f'[{get_metavar(1)} [{get_metavar(1)} ...]]'
+            return f'[{metavar} [{metavar} ...]]'
         elif action.nargs == ONE_OR_MORE:
-            return f'{get_metavar(1)} [{get_metavar(1)} ...]'
+            return f'{metavar} [{metavar} ...]'
         elif action.nargs == REMAINDER:
             return '...'
         elif action.nargs == PARSER:
-            return f'{get_metavar(1)} ...'
+            return f'{metavar} ...'
         elif action.nargs == SUPPRESS:
             return ''
+        elif isinstance(metavar, tuple):
+            if len(metavar) != action.nargs:
+                raise ValueError("invalid nargs value") from None
         else:
             try:
-                return ' '.join(f'{get_metavar(1)}' for _ in range(action.nargs))
+                return ' '.join([metavar] * action.nargs)
             except TypeError:
                 raise ValueError("invalid nargs value") from None
 

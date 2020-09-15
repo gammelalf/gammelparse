@@ -70,7 +70,6 @@ class Namespace(_AttributeHolder):
         return key in self.__dict__
 
 
-
 def _copy_items(items):
     """
     Copy a container in _AppendAction, _AppendConstAction or _ExtendAction
@@ -97,7 +96,7 @@ def _get_action_name(argument):
     if argument is None:
         return None
     elif argument.option_strings:
-        return  '/'.join(argument.option_strings)
+        return '/'.join(argument.option_strings)
     elif argument.metavar not in (None, SUPPRESS):
         return argument.metavar
     elif argument.dest not in (None, SUPPRESS):

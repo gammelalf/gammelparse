@@ -321,7 +321,7 @@ class _VersionAction(Action):
         version = self.version
         if version is None:
             version = parser.version
-        formatter = parser._get_formatter()
+        formatter = parser.get_formatter
         formatter.add_text(version)
         parser._print_message(formatter.format_help(), _sys.stdout)
         parser.exit()

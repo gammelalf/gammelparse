@@ -221,9 +221,9 @@ class _ActionsContainer(object):
                              ' must be passed' % (type_func,))
 
         # raise an error if the metavar does not match the type
-        if hasattr(self, "_get_formatter"):
+        if hasattr(self, "get_formatter"):
             try:
-                self._get_formatter()._format_args(action, None)
+                self.get_formatter._format_args(action, None)
             except TypeError:
                 raise ValueError("length of metavar tuple does not match nargs")
 
@@ -574,7 +574,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # prog defaults to the usage message of this parser, skipping
         # optional arguments and with no "usage:" prefix
         if kwargs.get('prog') is None:
-            formatter = self._get_formatter()
+            formatter = self.get_formatter
             positionals = self._get_positional_actions()
             groups = self._mutually_exclusive_groups
             formatter.add_usage(self.usage, positionals, groups, '')
@@ -1293,13 +1293,13 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # Help-formatting methods
     # =======================
     def format_usage(self):
-        formatter = self._get_formatter()
+        formatter = self.get_formatter
         formatter.add_usage(self.usage, self._actions,
                             self._mutually_exclusive_groups)
         return formatter.format_help()
 
     def format_help(self):
-        formatter = self._get_formatter()
+        formatter = self.get_formatter
 
         # usage
         formatter.add_usage(self.usage, self._actions,
@@ -1321,7 +1321,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # determine help from format above
         return formatter.format_help()
 
-    def _get_formatter(self):
+    @property
+    def get_formatter(self):
         return self.formatter_class(prog=self.prog)
 
     # =====================

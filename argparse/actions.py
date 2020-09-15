@@ -146,8 +146,7 @@ class _StoreConstAction(Action):
                  const,
                  default=None,
                  required=False,
-                 help=None,
-                 metavar=None):
+                 help=None):
         super(_StoreConstAction, self).__init__(
             option_strings=option_strings,
             dest=dest,
@@ -336,9 +335,8 @@ class _SubParsersAction(Action):
             metavar = dest = name
             if aliases:
                 metavar += ' (%s)' % ', '.join(aliases)
-            sup = super(_SubParsersAction._ChoicesPseudoAction, self)
-            sup.__init__(option_strings=[], dest=dest, help=help,
-                         metavar=metavar)
+            super().__init__(option_strings=[], dest=dest, help=help,
+                             metavar=metavar)
 
     def __init__(self,
                  option_strings,
@@ -420,6 +418,7 @@ class _SubParsersAction(Action):
         if arg_strings:
             vars(namespace).setdefault(_UNRECOGNIZED_ARGS_ATTR, [])
             getattr(namespace, _UNRECOGNIZED_ARGS_ATTR).extend(arg_strings)
+
 
 class _ExtendAction(_AppendAction):
     def __call__(self, parser, namespace, values, option_string=None):

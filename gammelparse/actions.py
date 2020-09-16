@@ -1,5 +1,4 @@
 import sys as _sys
-from gettext import gettext as _
 
 from .util import _AttributeHolder
 from .util import _copy_items
@@ -100,7 +99,7 @@ class Action(_AttributeHolder):
         return [(name, getattr(self, name)) for name in names]
 
     def __call__(self, parser, namespace, values, option_string=None):
-        raise NotImplementedError(_('.__call__() not defined'))
+        raise NotImplementedError('.__call__() not defined')
 
 
 class _StoreAction(Action):
@@ -399,10 +398,9 @@ class _SubParsersAction(Action):
         try:
             parser = self._name_parser_map[parser_name]
         except KeyError:
-            args = {'parser_name': parser_name,
-                    'choices': ', '.join(self._name_parser_map)}
-            msg = _('unknown parser %(parser_name)r (choices: %(choices)s)') % args
-            raise ArgumentError(self, msg)
+            raise ArgumentError(self,
+                                f'unknown parser {repr(parser_name)} '
+                                f'(choices: {", ".join(self._name_parser_map)})')
 
         # parse all the remaining options into the namespace
         # store any unrecognized options on the object, so that the top

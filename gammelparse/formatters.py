@@ -1,6 +1,5 @@
 import shutil as _shutil
 import re as _re
-from gettext import gettext as _
 
 from .const import (
     SUPPRESS,
@@ -153,7 +152,7 @@ class HelpFormatter(object):
 
     def _format_usage(self, usage, actions, groups, prefix):
         if prefix is None:
-            prefix = _('usage: ')
+            prefix = 'usage: '
 
         # if usage is specified, use that
         if usage is not None:

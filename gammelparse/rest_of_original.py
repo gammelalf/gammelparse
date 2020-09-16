@@ -2,8 +2,6 @@ import os as _os
 import re as _re
 import sys as _sys
 
-from gettext import gettext as _, ngettext
-
 from .util import (
     _AttributeHolder,
     _get_action_name,
@@ -303,8 +301,7 @@ class _ActionsContainer(object):
     def _get_positional_kwargs(self, dest, **kwargs):
         # make sure required is not specified
         if 'required' in kwargs:
-            msg = _("'required' is an invalid argument for positionals")
-            raise TypeError(msg)
+            raise TypeError("'required' is an invalid argument for positionals")
 
         # mark positional arguments as required if at least one is
         # always required
@@ -442,8 +439,7 @@ class _MutuallyExclusiveGroup(_ArgumentGroup):
 
     def _add_action(self, action):
         if action.required:
-            msg = _('mutually exclusive arguments must be optional')
-            raise ValueError(msg)
+            raise ValueError('mutually exclusive arguments must be optional')
         action = self._container._add_action(action)
         self._group_actions.append(action)
         return action
@@ -505,8 +501,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         self.allow_abbrev = allow_abbrev
 
         add_group = self.add_argument_group
-        self._positionals = add_group(_('positional arguments'))
-        self._optionals = add_group(_('optional arguments'))
+        self._positionals = add_group('positional arguments')
+        self._optionals = add_group('optional arguments')
         self._subparsers = None
 
         # register types
@@ -522,7 +518,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
             self.add_argument(
                 default_prefix + 'h', default_prefix * 2 + 'help',
                 action='help', default=SUPPRESS,
-                help=_('show this help message and exit'))
+                help='show this help message and exit')
 
         # add parent arguments and defaults
         for parent in parents:
@@ -553,14 +549,14 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
     # ==================================
     def add_subparsers(self, **kwargs):
         if self._subparsers is not None:
-            self.error(_('cannot have multiple subparser arguments'))
+            self.error('cannot have multiple subparser arguments')
 
         # add the parser class to the arguments if it's not present
         kwargs.setdefault('parser_class', type(self))
 
         if 'title' in kwargs or 'description' in kwargs:
-            title = _(kwargs.pop('title', 'subcommands'))
-            description = _(kwargs.pop('description', None))
+            title = kwargs.pop('title', 'subcommands')
+            description = kwargs.pop('description', None)
             self._subparsers = self.add_argument_group(title, description)
         else:
             self._subparsers = self._positionals

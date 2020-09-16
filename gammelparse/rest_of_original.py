@@ -354,7 +354,7 @@ class _ActionsContainer(object):
 
     def _get_handler(self):
         # determine function from conflict handler string
-        handler_func_name = f'_handle_conflict_{self._conflict_handler}'
+        handler_func_name = f'_handle_conflict_{self.conflict_handler}'
         try:
             return getattr(self, handler_func_name)
         except AttributeError:

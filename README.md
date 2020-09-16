@@ -16,3 +16,8 @@ It uses the same interface as argparse but the code behind it is _- in my opinio
 
 `python 3.6` because I love [_f-strings_](https://docs.python.org/3/whatsnew/3.6.html#whatsnew36-pep498) and they are generally more readable than old `%` or `str.format`
 formatting.
+
+## How to help
+
+Just download the repo, put or link the package into your systems packages and is it in actual protects of yours:
+`import argparse -> import gammelparse as argprase`
